@@ -7,10 +7,11 @@ import (
 	"log"
 	"net/http"
 
+	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	Credit9service "gitlab.com/c9/Credit9"
-	mysqldbs "gitlab.com/c9/Mysqldb"
+	mysqldbs "github.com/npinven/Mysqldb"
+	NPINven "github.com/npinven/npinven"
 )
 
 var (
@@ -62,7 +63,17 @@ func ConnectMysqlNP(dbName string) (db *sqlx.DB, err error) {
 	}
 	return db, err
 }
-
+func ConnectMybcnp(dbName string) (db *sqlx.DB, err error) {
+	fmt.Println("Connect MySql")
+	dsn := "root:[ibdkifu88@tcp(nopadol.net:3306)/" + dbName + "?parseTime=true&charset=utf8&loc=Local"
+	//fmt.Println(dsn,"DBName =", dbName)
+	db, err = sqlx.Connect("mysql", dsn)
+	if err != nil {
+		fmt.Println("sql error =", err)
+		return nil, err
+	}
+	return db, err
+}
 func ConnectSqlDB() (msdb *sqlx.DB, err error) {
 	db_host := "192.168.0.7"
 	db_name := "expertshop"
@@ -94,7 +105,7 @@ func ConnectNebula() (msdb *sqlx.DB, err error) {
 }
 func init() {
 
-	mysql_nopadol, err := ConnectMysqlNP("npdl")
+	mysql_nopadol, err := ConnectNebula()
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -118,8 +129,8 @@ func main() {
 		log.Println("### APP Mode = Production ###")
 		mode = "pro"
 	}
-	salesRepo := mysqldbs.NewCredit9Repository(mysql_np)
-	salesService := Credit9service.New(salesRepo)
+	npinvenRepo := mysqldbs.NewNpinvenRepository(mysql_np)
+	NPinvenService := NPINven.New(npinvenRepo)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", healthCheckHandler)
@@ -127,8 +138,8 @@ func main() {
 
 	fmt.Println("Waiting for Accept Connection : 9999")
 
-	mux.Handle("/credit9/", http.StripPrefix("/credit9/v1", Credit9service.MakeHandler(salesService)))
-	http.ListenAndServe(":9999", mux)
+	mux.Handle("/npinven/", http.StripPrefix("/npinven/v1", NPINven.MakeHandler(NPinvenService)))
+	http.ListenAndServe(":8079", mux)
 }
 
 func must(err error) {

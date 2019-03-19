@@ -1,4 +1,4 @@
-package credit9
+package NPINven
 
 import (
 	"encoding/json"
@@ -26,11 +26,8 @@ func MakeHandler(s Service) http.Handler {
 		ErrorEncoder:    errorEncoder,
 	})
 	mux := http.NewServeMux()
-	mux.Handle("/otp/gen", m.Handler(SentMessageOTP(s)))
-	mux.Handle("/otp/Validate", m.Handler(ValidateMessageOTP(s)))
-
+	mux.Handle("/gendocno", m.Handler(GenDocNo(s)))
 	return mustLogin()(mux)
-
 }
 
 func mustLogin() func(http.Handler) http.Handler {
