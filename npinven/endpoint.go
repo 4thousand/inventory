@@ -18,8 +18,6 @@ func GenDocNo(s Service) interface{} {
 			fmt.Println("endpoint error =", err.Error())
 			return nil, fmt.Errorf(err.Error())
 		}
-		return map[string]interface{}{
-			"data": resp,
-		}, nil
+		return resp, nil
 	}
 }
