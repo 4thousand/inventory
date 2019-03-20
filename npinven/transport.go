@@ -1,4 +1,4 @@
-package NPINven
+package invent
 
 import (
 	"encoding/json"

@@ -10,8 +10,8 @@ import (
 	_ "github.com/denisenkom/go-mssqldb"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	mysqldbs "github.com/npinven/Mysqldb"
-	NPINven "github.com/npinven/npinven"
+	"github.com/npinven/inventory/npinven"
+	"github.com/4thousand/inventory/Mysqldb"
 )
 
 var (
@@ -27,67 +27,19 @@ var (
 )
 
 var mysql_np *sqlx.DB
-var mysql_dbc *sqlx.DB
-var sql_dbc *sqlx.DB
-var nebula_dbc *sqlx.DB
-var (
-	pgEnv     = "development" //default
-	pgSSLMode = "disable"
-	pgDbHost  = "192.168.0.163"
-	pgDbUser  = "postgres"
-	pgDbPass  = "postgres"
-	pgDbName  = "backup"
-	pgDbPort  = "5432"
-)
+//var mysql_dbc *sqlx.DB
+//var sql_dbc *sqlx.DB
+//var nebula_dbc *sqlx.DB
+//var (
+//	pgEnv     = "development" //default
+//	pgSSLMode = "disable"
+//	pgDbHost  = "192.168.0.163"
+//	pgDbUser  = "postgres"
+//	pgDbPass  = "postgres"
+//	pgDbName  = "backup"
+//	pgDbPort  = "5432"
+//)
 
-func ConnectMySqlDB(dbName string) (db *sqlx.DB, err error) {
-	fmt.Println("Connect MySql")
-	//dsn := "root:[ibdkifu88@tcp(nopadol.net:3306)/" + dbName + "?parseTime=true&charset=utf8&loc=Local"
-	dsn := "it:[ibdkifu@tcp(192.168.0.89:3306)/" + dbName + "?parseTime=true&charset=utf8&loc=Local"
-	db, err = sqlx.Connect("mysql", dsn)
-	if err != nil {
-		fmt.Println("sql error =", err)
-		return nil, err
-	}
-	return db, err
-}
-
-func ConnectMysqlNP(dbName string) (db *sqlx.DB, err error) {
-	fmt.Println("Connect MySql")
-	dsn := "root:[ibdkifu88@tcp(nopadol.net:3306)/" + dbName + "?parseTime=true&charset=utf8&loc=Local"
-	//fmt.Println(dsn,"DBName =", dbName)
-	db, err = sqlx.Connect("mysql", dsn)
-	if err != nil {
-		fmt.Println("sql error =", err)
-		return nil, err
-	}
-	return db, err
-}
-func ConnectMybcnp(dbName string) (db *sqlx.DB, err error) {
-	fmt.Println("Connect MySql")
-	dsn := "root:[ibdkifu88@tcp(nopadol.net:3306)/" + dbName + "?parseTime=true&charset=utf8&loc=Local"
-	//fmt.Println(dsn,"DBName =", dbName)
-	db, err = sqlx.Connect("mysql", dsn)
-	if err != nil {
-		fmt.Println("sql error =", err)
-		return nil, err
-	}
-	return db, err
-}
-func ConnectSqlDB() (msdb *sqlx.DB, err error) {
-	db_host := "192.168.0.7"
-	db_name := "expertshop"
-	db_user := "sa"
-	db_pass := "[ibdkifu"
-	port := "1433"
-	dsn := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%s;database=%s", db_host, db_user, db_pass, port, db_name)
-	msdb = sqlx.MustConnect("mssql", dsn)
-	if msdb.Ping() != nil {
-		fmt.Println("Error ")
-	}
-
-	return msdb, nil
-}
 
 func ConnectNebula() (msdb *sqlx.DB, err error) {
 	db_host := "192.168.0.7"
@@ -136,7 +88,7 @@ func main() {
 	mux.HandleFunc("/", healthCheckHandler)
 	mux.HandleFunc("/version", apiVersionHandler)
 
-	fmt.Println("Waiting for Accept Connection : 9999")
+	fmt.Println("Waiting for Accept Connection : 8079")
 
 	mux.Handle("/npinven/", http.StripPrefix("/npinven/v1", NPINven.MakeHandler(NPinvenService)))
 	http.ListenAndServe(":8079", mux)
@@ -168,8 +120,8 @@ func apiVersionHandler(w http.ResponseWriter, r *http.Request) {
 		LastUpdate  string `json:"lastupdate"`
 	}{
 		"0.1.0 BETA",
-		"ERP Cloud Client Service",
-		"ERP dev team 2019",
-		"2019-01-01",
+		"Inventory Stock Count Service",
+		"IT Development Team2019",
+		"2019-03-19",
 	})
 }

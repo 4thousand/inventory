@@ -1,4 +1,4 @@
-package NPINven
+package invent
 
 func New(repo Repository) Service {
 	return &service{repo}

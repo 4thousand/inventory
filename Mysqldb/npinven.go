@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strconv"
 	"time"
-
 	"github.com/jmoiron/sqlx"
-	NPINven "github.com/npinven/npinven"
+	"github.com/npinven/inventory/npinven"
+	"github.com/labstack/gommon/log"
 )
 
 type DocNoModel struct {
@@ -28,17 +28,32 @@ func (repo *npinvenRepository) GenDocNoInven(Type string, Search string, Branch 
 	now := time.Now()
 	var lastdocno string
 
+	// check last stockcount number for user
 	var Docno string
 	doc := DocNoModel{}
-	sql := `select DocNo,DocDate,IsConfirm,CreatorCode,ISCANCEL from BCSTKInspect where CreatorCode = ? and DocNo like concat('%',?,'%')order by ROWORDER desc`
-	err = repo.db.Get(&doc, sql, Search, Branch)
+
+	// ต้องการหาใบล่าสุดของ user คนนี้
+	sql := "select top 1  DocNo,DocDate,IsConfirm,CreatorCode,ISCANCEL " +
+		" from BCSTKInspect where CreatorCode = "+
+		"'"+Search+"' and DocNo like '%"+Branch+"%' order by ROWORDER desc"
+
+	fmt.Println(sql )
+	err = repo.db.Get(&doc, sql)
+
+
 	if err != nil {
+		log.Printf("error query %v",err.Error())
 		return nil, err
 	}
-	DocDate := now.AddDate(0, 0, 0).Format("2006-01-02")
-	fmt.Println(DocDate)
+
+
+
+	curDocdate := now.AddDate(0, 0, 0).Format("2006-01-02")
+	fmt.Println(curDocdate)
 	fmt.Println(doc.DocDate[:10])
-	if DocDate == doc.DocDate[:10] && doc.IsConfirm == 1 && doc.IsCancel == 0{
+
+	// if date of stockcount doc = currentdate
+	if curDocdate == doc.DocDate[:10] && doc.IsConfirm == 1 && doc.IsCancel == 0 {
 		return map[string]interface{}{
 			"resp": map[string]interface{}{
 				"isSuccess":   1,
@@ -49,10 +64,15 @@ func (repo *npinvenRepository) GenDocNoInven(Type string, Search string, Branch 
 			"docno": doc.DocNo}, nil
 
 	} else {
-		DocDate := now.AddDate(0, 0, 0).Format("2006-01-02")
+		//DocDate := now.AddDate(0, 0, 0).Format("2006-01-02")
 
-		sql := `select DocNo,DocDate,IsConfirm,CreatorCode from BCSTKInspect where DocNo like concat('%',?,'%')order by ROWORDER desc`
-		err = repo.db.Get(&doc, sql, Branch)
+		//sql := `select DocNo,DocDate,IsConfirm,CreatorCode from BCSTKInspect where DocNo like concat('%',?,'%')order by ROWORDER desc`
+
+		sql := "select top 1  DocNo,DocDate,IsConfirm,CreatorCode,ISCANCEL " +
+			" from BCSTKInspect where DocNo like '%"+Branch+"-IS%' order by ROWORDER desc"
+		fmt.Println(sql)
+
+		err = repo.db.Get(&doc, sql)
 		if err != nil {
 			return nil, err
 		}
@@ -84,7 +104,7 @@ func (repo *npinvenRepository) GenDocNoInven(Type string, Search string, Branch 
 		fmt.Println(Docno)
 
 		sqli := `insert into BCSTKInspect(DocNo,DocDate,MyDescription,InspectBy,IsConfirm,CreatorCode,CreateDateTime) values(?,?,?,?,?,?,?)`
-		resp, err := repo.db.Exec(sqli, Docno, DocDate, "Mobile-app", 1, 1, Search, now.Format("2006-01-02 3:4:5"))
+		resp, err := repo.db.Exec(sqli, Docno, curDocdate, "Mobile-app", 1, 1, Search, now.Format("2006-01-02 3:4:5"))
 		if err != nil {
 			fmt.Println("error = ", resp, err.Error())
 			return nil, err
